@@ -9,6 +9,7 @@ const target = targetArg ? targetArg.split("=")[1] : "all"; // "chrome" | "firef
 
 const buildChrome = target === "all" || target === "chrome";
 const buildFirefox = target === "all" || target === "firefox";
+const buildEdge = target === "all" || target === "edge";
 
 const shared = {
   bundle: true,
@@ -32,6 +33,12 @@ if (buildFirefox) {
   mkdirSync("dist/firefox/assets", { recursive: true });
   cpSync("src/extension/manifest.firefox.json", "dist/firefox/manifest.json");
   cpSync("src/assets", "dist/firefox/assets", { recursive: true });
+}
+
+if (buildEdge) {
+  mkdirSync("dist/edge/assets", { recursive: true });
+  cpSync("src/extension/manifest.json", "dist/edge/manifest.json");
+  cpSync("src/assets", "dist/edge/assets", { recursive: true });
 }
 
 // ---------------------------------------------------------------------------
@@ -58,6 +65,7 @@ function makeConfigs(outdir) {
 const configs = [
   ...(buildChrome ? makeConfigs("dist/chrome") : []),
   ...(buildFirefox ? makeConfigs("dist/firefox") : []),
+  ...(buildEdge ? makeConfigs("dist/edge") : []),
 ];
 
 // ---------------------------------------------------------------------------
@@ -72,7 +80,7 @@ if (watch) {
   console.log("Watching for changes...");
 } else {
   await Promise.all(configs.map((config) => esbuild.build(config)));
-  const targets = [buildChrome && "chrome", buildFirefox && "firefox"].filter(Boolean).join(", ");
+  const targets = [buildChrome && "chrome", buildFirefox && "firefox", buildEdge && "edge"].filter(Boolean).join(", ");
   console.log(`Build complete: ${targets}`);
 
   if (zip) {
@@ -85,6 +93,11 @@ if (watch) {
     if (buildFirefox) {
       const name = `dist/h2d-capture-firefox-v${version}.zip`;
       execSync(`cd dist/firefox && zip -r ../${name.replace("dist/", "")} .`);
+      console.log(`Packed: ${name}`);
+    }
+    if (buildEdge) {
+      const name = `dist/h2d-capture-edge-v${version}.zip`;
+      execSync(`cd dist/edge && zip -r ../${name.replace("dist/", "")} .`);
       console.log(`Packed: ${name}`);
     }
     // Source code archive for Firefox Add-on review

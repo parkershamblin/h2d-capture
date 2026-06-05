@@ -7,6 +7,7 @@
     "build:zip": "node esbuild.config.mjs --zip",
     "build:chrome": "node esbuild.config.mjs --target=chrome",
     "build:firefox": "node esbuild.config.mjs --target=firefox",
+    "build:edge": "node esbuild.config.mjs --target=edge",
     "watch": "node esbuild.config.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

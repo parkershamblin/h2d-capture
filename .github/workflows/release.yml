@@ -31,3 +31,4 @@ jobs:
           files: |
             dist/h2d-capture-chrome-*.zip
             dist/h2d-capture-firefox-*.zip
+            dist/h2d-capture-edge-*.zip
