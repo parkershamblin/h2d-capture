@@ -1,6 +1,29 @@
 import esbuild from "esbuild";
 import { cpSync, mkdirSync, readFileSync } from "fs";
 import { execSync } from "child_process";
+import { resolve } from "path";
+
+const isWindows = process.platform === "win32";
+
+function packDir(sourceDir, outFile) {
+  if (isWindows) {
+    const src = resolve(sourceDir).replace(/\\/g, "\\\\");
+    const dest = resolve(outFile).replace(/\\/g, "\\\\");
+    execSync(`powershell -Command "Compress-Archive -Path '${src}\\\\*' -DestinationPath '${dest}' -Force"`);
+  } else {
+    execSync(`cd ${sourceDir} && zip -r ../${outFile.replace(/^dist\//, "")} .`);
+  }
+}
+
+function packFiles(files, outFile) {
+  if (isWindows) {
+    const dest = resolve(outFile).replace(/\\/g, "\\\\");
+    const paths = files.map((f) => `'${resolve(f).replace(/\\/g, "\\\\")}'`).join(", ");
+    execSync(`powershell -Command "Compress-Archive -Path ${paths} -DestinationPath '${dest}' -Force"`);
+  } else {
+    execSync(`zip -r ${outFile} ${files.join(" ")} -x "*.DS_Store"`);
+  }
+}
 
 const watch = process.argv.includes("--watch");
 const zip = process.argv.includes("--zip");
@@ -87,22 +110,22 @@ if (watch) {
     const { version } = JSON.parse(readFileSync("package.json", "utf8"));
     if (buildChrome) {
       const name = `dist/h2d-capture-chrome-v${version}.zip`;
-      execSync(`cd dist/chrome && zip -r ../${name.replace("dist/", "")} .`);
+      packDir("dist/chrome", name);
       console.log(`Packed: ${name}`);
     }
     if (buildFirefox) {
       const name = `dist/h2d-capture-firefox-v${version}.zip`;
-      execSync(`cd dist/firefox && zip -r ../${name.replace("dist/", "")} .`);
+      packDir("dist/firefox", name);
       console.log(`Packed: ${name}`);
     }
     if (buildEdge) {
       const name = `dist/h2d-capture-edge-v${version}.zip`;
-      execSync(`cd dist/edge && zip -r ../${name.replace("dist/", "")} .`);
+      packDir("dist/edge", name);
       console.log(`Packed: ${name}`);
     }
     // Source code archive for Firefox Add-on review
     const srcName = `dist/h2d-capture-source-v${version}.zip`;
-    execSync(`zip -r ${srcName} src/ package.json package-lock.json tsconfig.json esbuild.config.mjs README.md LICENSE -x "*.DS_Store"`);
+    packFiles(["src", "package.json", "package-lock.json", "tsconfig.json", "esbuild.config.mjs", "README.md", "LICENSE"], srcName);
     console.log(`Packed: ${srcName}`);
   }
 }

@@ -11,3 +11,4 @@ vitest.config.ts
 .claude/
 CLAUDE.md
 *.zip
+store-assets/
